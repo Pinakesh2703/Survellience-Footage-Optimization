@@ -7,13 +7,13 @@ Our tech stack includes Next.js, ChadCn UI, and TensorFlow, and we will be deplo
 
 ## Getting Started
 
-1. **Clone the repository**
+**Clone the repository**
     ```
     git clone https://github.com/AntareepDey/Survellience-Footage-Optimization
     ```
 
 
-2. **Install the dependencies**
+**Install the dependencies**
     ```
     npm install
     ```

@@ -23,7 +23,7 @@ const Page = (Props: Props) => {
         <Separator className='separator'/>
         <div className='container'>
             <button className='box'>Record</button>
-            <button className='box'>Automate</button>
+            <button className='box'>Auto Record</button>
             <button className='box'>Capture</button>
 
         </div>

@@ -1,0 +1,55 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=Montserrat:wght@500;700&display=swap");
+
+body{
+    background-image: url("Pagebackground.jpg");
+}
+
+.h-screen{
+    color: rgb(169, 130, 78);
+}
+.cambox {
+    position: relative;
+    width: 50vw; /* Adjust the width as needed */
+    height: 30%;
+    margin-inline:auto ;
+    margin-top: 10px;
+}
+.container{
+    display: flex;
+    gap: 20vw;
+}
+.box{
+    display: block;
+    margin: 2em 0 1em 0;
+    background-color: rgb(19, 142, 105);
+    position: relative;
+    /* left: 15vw; */
+    width: 15vw;
+    padding: 1em 0;
+    color: var(--white);
+    border: 0;
+    border-radius: 0.9em;
+    outline: none;
+    cursor: pointer;
+}
+box:hover{
+    scale: 105%;
+}
+.separator{
+    color: black;
+    border: 1px solid black;
+    margin-bottom: 20px;
+}
+.footer {
+    background-color: #333;
+    color: white;
+    padding: 20px;
+    text-align: center;
+  }
+.header {
+    background-color: #333;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+    

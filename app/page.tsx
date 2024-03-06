@@ -3,7 +3,8 @@ import React, { useRef } from 'react'
 import Webcam from 'react-webcam';
 import './customstyle.css';
 import { Separator } from '@/components/ui/separator';
-
+import { ModeToggle } from '@/components/theme-toggle';
+import { Camera, CameraIcon, VideoIcon } from 'lucide-react';
 type Props = {}
 
 

@@ -1,15 +1,22 @@
 "use client"
-import React, { useRef } from 'react'
+import React, { use, useEffect, useRef } from 'react'
 import Webcam from 'react-webcam';
 import './customstyle.css';
 import { Separator } from '@/components/ui/separator';
-
+// import * as cocossd from '@tensorflow-models/coco-ssd';
+// import "@tensorflow/tfjs-backend-cpu";
+// import "@tensorflow/tfjs-backend-webgl";
 type Props = {}
 
 
 const Page = (Props: Props) => {
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null); 
+  
+  // const[model,setmodel]=useState<ObjectDetection>();
+  // useEffect(() => {
+  //   initModel();
+  // },[]);
   return (
     <body>
       <div className='header'>

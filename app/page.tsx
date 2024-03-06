@@ -1,24 +1,20 @@
 "use client"
-import React, { use, useEffect, useRef } from 'react'
+import React, { useRef } from 'react'
 import Webcam from 'react-webcam';
 import './customstyle.css';
 import { Separator } from '@/components/ui/separator';
-// import * as cocossd from '@tensorflow-models/coco-ssd';
-// import "@tensorflow/tfjs-backend-cpu";
-// import "@tensorflow/tfjs-backend-webgl";
+
 type Props = {}
 
 
 const Page = (Props: Props) => {
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null); 
-  
-  // const[model,setmodel]=useState<ObjectDetection>();
-  // useEffect(() => {
-  //   initModel();
-  // },[]);
   return (
     <body>
+      <button>
+
+      </button>
       <div className='header'>
         Header content goes here
       </div>
@@ -28,12 +24,14 @@ const Page = (Props: Props) => {
           className='canvasclass'></canvas>
         </div>
         <Separator className='separator'/>
-        <div className='container'>
-            <button className='box'>Record</button>
-            <button className='box'>Auto Record</button>
-            <button className='box'>Capture</button>
+        <ModeToggle></ModeToggle>
 
+        <div className='container'>
+          <button  className='box'  onClick={userPromptScreenshot}><CameraIcon/>Capture</button>
+          <button className='box'  onClick={userPromptRecord}><VideoIcon/>Auto Record</button>
+          {/* <button className='box'  onClick={}><VideoIcon/>manual record</button> */}
         </div>
+
         <Separator className='separator'/>
         <div className='footer'>
         Footer content goes here
@@ -41,6 +39,16 @@ const Page = (Props: Props) => {
     </body>
     
   );
+  function userPromptScreenshot(){
+    //add screenshot 
+
+    //save it to downloads
+  }
+  function userPromptRecord(){
+    // record 
+
+    // save
+  }
 };
 
 export default Page;

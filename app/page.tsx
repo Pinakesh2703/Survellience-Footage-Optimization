@@ -16,7 +16,7 @@ const Page = (Props: Props) => {
 
       </button>
       <div className='header'>
-        Header content goes here
+      Survellience-Footage-Optimization
       </div>
         <div className='cambox'>
           <Webcam ref={webcamRef} mirrored className='webcamclass' />
@@ -27,7 +27,7 @@ const Page = (Props: Props) => {
         <ModeToggle></ModeToggle>
 
         <div className='container'>
-          <button  className='box'  onClick={userPromptScreenshot}><CameraIcon/>Capture</button>
+          <button  className='box' onClick={userPromptScreenshot}><CameraIcon/>Capture</button>
           <button className='box'  onClick={userPromptRecord}><VideoIcon/>Auto Record</button>
           {/* <button className='box'  onClick={}><VideoIcon/>manual record</button> */}
         </div>

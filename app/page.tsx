@@ -1,8 +1,11 @@
 "use client"
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import Webcam from 'react-webcam';
 import './customstyle.css';
 import { Separator } from '@/components/ui/separator';
+import { ModeToggle } from '@/components/theme-toggle';
+import Button from '@material-ui/core/Button';
+import { Camera, CameraIcon, VideoIcon } from 'lucide-react';
 
 type Props = {}
 
@@ -10,8 +13,16 @@ type Props = {}
 const Page = (Props: Props) => {
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null); 
+
+  //state
+
+  const [isRecording, setIsRecording]=useState<boolean>(false);
+
   return (
     <body>
+      <button>
+
+      </button>
       <div className='header'>
         Header content goes here
       </div>
@@ -21,12 +32,14 @@ const Page = (Props: Props) => {
           className='canvasclass'></canvas>
         </div>
         <Separator className='separator'/>
-        <div className='container'>
-            <button className='box'>Record</button>
-            <button className='box'>Auto Record</button>
-            <button className='box'>Capture</button>
+        <ModeToggle></ModeToggle>
 
+        <div className='container'>
+          <button  className='box'  onClick={userPromptScreenshot}><CameraIcon/>Capture</button>
+          <button className='box'  onClick={userPromptRecord}><VideoIcon/>Auto Record</button>
+          {/* <button className='box'  onClick={}><VideoIcon/>manual record</button> */}
         </div>
+
         <Separator className='separator'/>
         <div className='footer'>
         Footer content goes here
@@ -34,6 +47,16 @@ const Page = (Props: Props) => {
     </body>
     
   );
+  function userPromptScreenshot(){
+    //add screenshot 
+
+    //save it to downloads
+  }
+  function userPromptRecord(){
+    // record 
+
+    // save
+  }
 };
 
 export default Page;

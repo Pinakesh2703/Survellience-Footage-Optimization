@@ -1,21 +1,23 @@
 "use client"
-import React, { useRef } from 'react'
+import React, { useRef,useState } from 'react'
 import Webcam from 'react-webcam';
 import './customstyle.css';
 import { Separator } from '@/components/ui/separator';
 import { ModeToggle } from '@/components/theme-toggle';
 import { Camera, CameraIcon, VideoIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 type Props = {}
 
 
 const Page = (Props: Props) => {
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null); 
+  const [isRecording, setIsRecording] = useState<boolean>(false);
   return (
     <body>
-      <button>
+      {/* <button>
 
-      </button>
+      </button> */}
       <div className='header'>
       Survellience-Footage-Optimization
       </div>
@@ -28,8 +30,8 @@ const Page = (Props: Props) => {
         <ModeToggle></ModeToggle>
 
         <div className='container'>
-          <button  className='box' onClick={userPromptScreenshot}><CameraIcon/>Capture</button>
-          <button className='box'  onClick={userPromptRecord}><VideoIcon/>Auto Record</button>
+          <Button variant={'outline'} className='box' onClick={userPromptScreenshot}><CameraIcon/>Capture</Button>
+          <Button  variant={isRecording ? 'destructive' : 'outline'} className='box'  onClick={userPromptRecord}><VideoIcon/>Auto Record</Button>
           {/* <button className='box'  onClick={}><VideoIcon/>manual record</button> */}
         </div>
 

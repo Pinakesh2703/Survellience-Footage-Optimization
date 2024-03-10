@@ -70,7 +70,6 @@ const Page = (Props: Props) => {
 
   return (
     <body>
-      {/* <div className='flex h-screen w-screen'> */}
         <div className='header'>
         <div className="headerLeft">SURVELLIENCE FOOTAGE OPTIMIZATION</div>
           <div className='headerRight'><ModeToggle></ModeToggle></div>     
@@ -78,11 +77,21 @@ const Page = (Props: Props) => {
 
         
           <div className='cambox'>
-            <Webcam ref={webcamRef} mirrored className='webcamclass' />
-            <canvas ref={canvasRef}
-            className='canvasclass'></canvas>
-          </div>
+          <Webcam
+              ref={webcamRef}
+              mirrored={true}
+              style={{ height: '100%', width: '100%', objectFit: 'contain', padding: '0.5rem' }}
+              className='custom-webcam'
+            />
+            <canvas
+              ref={canvasRef}
+              style={{ position: 'absolute', top: '0', left: '0', height: '100%', width: '100%', objectFit: 'contain', transform: 'scaleX(-1)', padding: '0.5rem'}}
+              className='custom-canvas'
+              
+            ></canvas>
 
+          </div>
+  
           
 
           <Separator className='separator'/>
@@ -172,4 +181,3 @@ function resizeCanvas(canvasRef: React.RefObject<HTMLCanvasElement>, webcamRef: 
     canvas.height=videoHeight;
   }
 }
-

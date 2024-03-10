@@ -1,33 +1,32 @@
-
-.cambox {
-    position: relative;
-    left: 2vw;
-    width: fit-content; /* Adjust the width as needed */
-    height: 485px;
-    margin-inline:auto ;
-    margin-top: 10px;
-    box-shadow: 0 0 70px 0 rgba(255, 255, 255, 0.5);
-    margin-bottom: 30px;
-    border: 3px solid black;
+.cambox{
+  margin-top: 10vh;
+  position: relative ;
+  height: 70vh ;
+  width: 70vww;
+  margin-bottom: 10vh;
 }
 
-.soundslider {
+
+
+
+
+
+/* .soundslider {
     display: flex;
-    align-items: center; /* Align items vertically */
+    align-items: center; 
     width: 20vw;
     padding-right: 15px;
   }
   
   .soundslider .icon {
-    flex: none; /* Do not allow resizing */
-    width: auto; /* Set width based on content */
+    flex: none;
+    width: auto; 
   }
   
   .soundslider .slider {
-    flex: 1; /* Allow slider to take remaining space */
-    margin-left: 10px; /* Adjust margin for spacing */
-  }
-  
+    flex: 1; 
+    margin-left: 10px; }
+   */
 
 /* -------------------------------------------------------------------------------------------------------------------------------  */
 .ButtonParent {
@@ -86,7 +85,7 @@
     padding: 10px;
     text-align: center;
     gap: 70vw;
-    margin-bottom:30px ;
+    margin-bottom:15px ;
     width: 100vw;
 }
 

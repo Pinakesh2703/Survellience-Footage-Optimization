@@ -1,11 +1,9 @@
 "use client"
-import { ModeToggle } from '@/components/theme-toggle';
+
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
-import { Slider } from '@/components/ui/slider';
 import { beep } from '@/utils/audio';
-import { Camera, Divide, FlipHorizontal, MoonIcon, PersonStanding, SunIcon, Video, Volume2 } from 'lucide-react';
+import { Camera, FlipHorizontal, PersonStanding, Video, Volume2 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react'
 import { Rings } from 'react-loader-spinner';
 import Webcam from 'react-webcam';
@@ -15,27 +13,30 @@ import "@tensorflow/tfjs-backend-cpu"
 import "@tensorflow/tfjs-backend-webgl"
 import { DetectedObject, ObjectDetection } from '@tensorflow-models/coco-ssd';
 import { drawOnCanvas } from '@/utils/draw';
-import SocialMediaLinks from '@/components/social-links';
+import { motion } from 'framer-motion';
+import { sendEmail } from '@/utils/emailjs';
 
 type Props = {}
 
 let interval: any = null;
 let stopTimeout: any = null;
+let noPersonDetectedTimeout: any = null;
+
 const HomePage = (props: Props) => {
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // state 
   const [mirrored, setMirrored] = useState<boolean>(true);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [autoRecordEnabled, setAutoRecordEnabled] = useState<boolean>(false)
   const [volume, setVolume] = useState(0.8);
   const [model, setModel] = useState<ObjectDetection>();
   const [loading, setLoading] = useState(false);
+  const [activities, setActivities] = useState<string[]>([]);
+  const [lastEmailSent, setLastEmailSent] = useState<number>(0);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
-  // initialize the media recorder
   useEffect(() => {
     if (webcamRef && webcamRef.current) {
       const stream = (webcamRef.current.video as any).captureStream();
@@ -63,14 +64,11 @@ const HomePage = (props: Props) => {
     }
   }, [webcamRef])
 
-
   useEffect(() => {
     setLoading(true);
     initModel();
   }, [])
 
-  // loads model 
-  // set it in a state varaible
   async function initModel() {
     const loadedModel: ObjectDetection = await cocossd.load({
       base: 'lite_mobilenet_v2'
@@ -83,7 +81,6 @@ const HomePage = (props: Props) => {
       setLoading(false);
     }
   }, [model])
-
 
   async function runPrediction() {
     if (
@@ -103,8 +100,34 @@ const HomePage = (props: Props) => {
           isPerson = prediction.class === 'person';
         })
 
-        if (isPerson && autoRecordEnabled) {
-          startRecording(true);
+        if (isPerson) {
+          if (noPersonDetectedTimeout) {
+            clearTimeout(noPersonDetectedTimeout);
+            noPersonDetectedTimeout = null;
+          }
+
+          if (autoRecordEnabled && !isRecording) {
+            startRecording(true);
+            const now = Date.now();
+            if (now - lastEmailSent > 5 * 60 * 1000) {
+              sendEmail(`Person detected at ${formatDate(new Date())}. Auto-recording started.`)
+                .then(() => {
+                  addActivity(`Email notification sent at ${formatDate(new Date())}`);
+                  setLastEmailSent(now);
+                })
+                .catch((error) => {
+                  console.error('Failed to send email:', error);
+                  addActivity(`Failed to send email notification at ${formatDate(new Date())}`);
+                });
+            }
+          }
+        } else if (isRecording) {
+          noPersonDetectedTimeout = setTimeout(() => {
+            if (isRecording) {
+              stopRecording();
+              addActivity(`Auto-record ended due to no person detected at ${formatDate(new Date())}`);
+            }
+          }, 4000);
         }
       }
     }
@@ -118,107 +141,14 @@ const HomePage = (props: Props) => {
     return () => clearInterval(interval);
   }, [webcamRef.current, model, mirrored, autoRecordEnabled, runPrediction])
 
-  return (
-
-    <div className='flex h-screen'>
-      {/* Left division - webcam and Canvas  */}
-      <div className='relative'>
-        <div className='relative h-screen w-full'>
-          <Webcam ref={webcamRef}
-            mirrored={mirrored}
-            className='h-full w-full object-contain p-2'
-          />
-          <canvas ref={canvasRef}
-            className='absolute top-0 left-0 h-full w-full object-contain'
-          ></canvas>
-        </div>
-      </div>
-
-      {/* Righ division - container for buttion panel and wiki secion  */}
-      <div className='flex flex-row flex-1'>
-        <div className='border-primary/5 border-2 max-w-xs flex flex-col gap-2 justify-between shadow-md rounded-md p-4'>
-          {/* top secion  */}
-          <div className='flex flex-col gap-2'>
-            <ModeToggle />
-            <Button
-              variant={'outline'} size={'icon'}
-              onClick={() => {
-                setMirrored((prev) => !prev)
-              }}
-            ><FlipHorizontal /></Button>
-
-            <Separator className='my-2' />
-          </div>
-
-          {/* Middle section  */}
-          <div className='flex flex-col gap-2'>
-            <Separator className='my-2' />
-            <Button
-              variant={'outline'} size={'icon'}
-              onClick={userPromptScreenshot}
-            >
-              <Camera />
-            </Button>
-            <Button
-              variant={isRecording ? 'destructive' : 'outline'} size={'icon'}
-              onClick={userPromptRecord}
-            >
-              <Video />
-            </Button>
-            <Separator className='my-2' />
-            <Button
-              variant={autoRecordEnabled ? 'destructive' : 'outline'}
-              size={'icon'}
-              onClick={toggleAutoRecord}
-            >
-              {autoRecordEnabled ? <Rings color='white' height={45} /> : <PersonStanding />}
-
-            </Button>
-          </div>
-
-          <div className='flex flex-col gap-2'>
-            <Separator className='my-2' />
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant={'outline'} size={'icon'}>
-                  <Volume2 />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent>
-                <Slider
-                  max={1}
-                  min={0}
-                  step={0.2}
-                  defaultValue={[volume]}
-                  onValueCommit={(val) => {
-                    setVolume(val[0]);
-                    beep(val[0]);
-                  }}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
-
-        <div className='h-full flex-1 py-4 px-2 overflow-y-scroll'>
-          <RenderFeatureHighlightsSection />
-        </div>
-      </div>
-      {loading && <div className='z-50 absolute w-full h-full flex items-center justify-center bg-primary-foreground'>
-        Getting things ready . . . <Rings height={50} color='red' />
-      </div>}
-    </div>
-  )
-
-  // handler functions
+  const addActivity = (activity: string) => {
+    setActivities(prev => [activity, ...prev].slice(0, 10)); // Keep only the last 10 activities
+  };
 
   function userPromptScreenshot() {
-
-    // take picture
-    if(!webcamRef.current){
+    if (!webcamRef.current) {
       toast('Camera not found. Please refresh');
-    }else{
+    } else {
       const imgSrc = webcamRef.current.getScreenshot();
       console.log(imgSrc);
       const blob = base64toBlob(imgSrc);
@@ -228,30 +158,25 @@ const HomePage = (props: Props) => {
       a.href = url;
       a.download = `${formatDate(new Date())}.png`
       a.click();
-    }
-    // save it to downloads
 
+      addActivity(`Screenshot captured at ${formatDate(new Date())}`);
+    }
   }
 
   function userPromptRecord() {
-
     if (!webcamRef.current) {
       toast('Camera is not found. Please refresh.')
     }
 
     if (mediaRecorderRef.current?.state == 'recording') {
-      // check if recording
-      // then stop recording 
-      // and save to downloads
       mediaRecorderRef.current.requestData();
       clearTimeout(stopTimeout);
       mediaRecorderRef.current.stop();
       toast('Recording saved to downloads');
-
+      addActivity(`Video recording saved at ${formatDate(new Date())}`);
     } else {
-      // if not recording
-      // start recording 
       startRecording(false);
+      addActivity(`Video recording started at ${formatDate(new Date())}`);
     }
   }
 
@@ -260,13 +185,25 @@ const HomePage = (props: Props) => {
       mediaRecorderRef.current?.start();
       doBeep && beep(volume);
 
+      if (autoRecordEnabled) {
+        addActivity(`Auto-record started at ${formatDate(new Date())}`);
+      }
+
       stopTimeout = setTimeout(() => {
         if (mediaRecorderRef.current?.state === 'recording') {
           mediaRecorderRef.current.requestData();
           mediaRecorderRef.current.stop();
+          addActivity(`Auto-record ended at ${formatDate(new Date())}`);
         }
-
       }, 30000);
+    }
+  }
+
+  function stopRecording() {
+    if (mediaRecorderRef.current?.state === 'recording') {
+      mediaRecorderRef.current.requestData();
+      mediaRecorderRef.current.stop();
+      clearTimeout(stopTimeout);
     }
   }
 
@@ -274,86 +211,146 @@ const HomePage = (props: Props) => {
     if (autoRecordEnabled) {
       setAutoRecordEnabled(false);
       toast('Autorecord disabled')
-      // show toast to user to notify the change
-
+      addActivity('Auto-record disabled');
     } else {
       setAutoRecordEnabled(true);
       toast('Autorecord enabled')
-      // show toast
+      addActivity('Auto-record enabled');
     }
-
   }
 
+  return (
+    <div className='flex flex-col h-screen bg-gray-900 text-white'>
+      {/* Navbar */}
+      <nav className='bg-black p-4 flex justify-between items-center'>
+        <h1 className='text-xl font-bold'>SEE-curity</h1>
+      </nav>
 
-  // inner components
-  function RenderFeatureHighlightsSection() {
-    return <div className="text-xs text-muted-foreground">
+      {/* Main content */}
+      <div className='flex flex-1 overflow-hidden'>
+        {/* Left side - Camera */}
+        <motion.div 
+          className='w-full lg:w-3/4 flex flex-col'
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className='relative flex-1 rounded-lg overflow-hidden m-4 shadow-lg'>
+            <Webcam ref={webcamRef}
+              mirrored={mirrored}
+              className='h-full w-full object-cover'
+            />
+            <canvas ref={canvasRef}
+              className='absolute top-0 left-0 h-full w-full object-cover'
+            ></canvas>
+          </div>
+          
+          {/* Buttons below camera */}
+          <motion.div 
+            className='p-4 flex justify-center space-x-2'
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            
+            <Button variant='secondary' size='icon' onClick={userPromptScreenshot}>
+              <Camera />
+            </Button>
+            <Button variant={isRecording ? 'destructive' : 'secondary'} size='icon' onClick={userPromptRecord}>
+              <Video />
+            </Button>
+            <Button variant={autoRecordEnabled ? 'destructive' : 'secondary'} size='icon' onClick={toggleAutoRecord}>
+              {autoRecordEnabled ? <Rings color='white' height={45} /> : <PersonStanding />}
+            </Button>
+            
+          </motion.div>
+        </motion.div>
+
+        {/* Right side - Activity Log and UserGuide & Features */}
+        <motion.div 
+          className='hidden lg:flex lg:w-1/4 flex-col p-4 bg-gray-800 overflow-y-auto'
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          {/* Activity Log */}
+          <div className="mb-8">
+            <h2 className='text-lg font-semibold mb-4'>Activity Log</h2>
+            <div className="text-sm text-gray-300">
+              {activities.map((activity, index) => (
+                <p key={index} className="mb-2">{activity}</p>
+              ))}
+            </div>
+          </div>
+
+          {/* Separator */}
+          <Separator className="bg-gray-700 my-4" />
+
+          {/* UserGuide & Features */}
+          <div>
+            <h2 className='text-lg font-semibold mb-4'>UserGuide & Features</h2>
+            <RenderFeatureHighlightsSection />
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Loading overlay */}
+      {loading && (
+        <div className='z-50 absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75'>
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Rings height={100} color='white' />
+          </motion.div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function RenderFeatureHighlightsSection() {
+  return (
+    <motion.div 
+      className="text-sm text-gray-300"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.3, duration: 0.5 }}
+    >
       <ul className="space-y-4">
-        
         <li>
-          <strong>Horizontal Flip ↔️</strong>
+          <strong className="text-white">Horizontal Flip ↔</strong>
           <p>Adjust horizontal orientation.</p>
-          <Button className='h-6 w-6 my-2'
-            variant={'outline'} size={'icon'}
-            onClick={() => {
-              setMirrored((prev) => !prev)
-            }}
-          ><FlipHorizontal size={14} /></Button>
         </li>
-        <Separator />
+        <Separator className="bg-gray-700" />
         <li>
-          <strong>Take Pictures 📸</strong>
+          <strong className="text-white">Take Pictures 📸</strong>
           <p>Capture snapshots at any moment from the video feed.</p>
-          <Button
-            className='h-6 w-6 my-2'
-            variant={'outline'} size={'icon'}
-            onClick={userPromptScreenshot}
-          >
-            <Camera size={14} />
-          </Button>
         </li>
         <li>
-          <strong>Manual Video Recording 📽️</strong>
+          <strong className="text-white">Manual Video Recording 📽</strong>
           <p>Manually record video clips as needed.</p>
-          <Button className='h-6 w-6 my-2'
-            variant={isRecording ? 'destructive' : 'outline'} size={'icon'}
-            onClick={userPromptRecord}
-          >
-            <Video size={14} />
-          </Button>
         </li>
-        <Separator />
+        <Separator className="bg-gray-700" />
         <li>
-          <strong>Enable/Disable Auto Record 🚫</strong>
-          <p>
-            Option to enable/disable automatic video recording whenever
-            required.
-          </p>
-          <Button className='h-6 w-6 my-2'
-            variant={autoRecordEnabled ? 'destructive' : 'outline'}
-            size={'icon'}
-            onClick={toggleAutoRecord}
-          >
-            {autoRecordEnabled ? <Rings color='white' height={30} /> : <PersonStanding size={14} />}
-
-          </Button>
+          <strong className="text-white">Enable/Disable Auto Record 🚫</strong>
+          <p>Option to enable/disable automatic video recording whenever required.</p>
         </li>
-
         <li>
-          <strong>Volume Slider 🔊</strong>
+          <strong className="text-white">Volume Slider 🔊</strong>
           <p>Adjust the volume level of the notifications.</p>
         </li>
         <li>
-          <strong>Camera Feed Highlighting 🎨</strong>
+          <strong className="text-white">Camera Feed Highlighting 🎨</strong>
           <p>
-            Highlights persons in{" "}
-            <span style={{ color: "#00B612" }}>green</span> and other objects in{" "}
-            <span style={{ color: "#FF0F0F" }}>red</span>.
+            Highlights persons in <span style={{ color: "#4ade80" }}>green</span> and other objects in{" "}
+            <span style={{ color: "#f87171" }}>red</span>.
           </p>
         </li>
       </ul>
-    </div>
-  }
+    </motion.div>
+  )
 }
 
 export default HomePage
@@ -368,7 +365,6 @@ function resizeCanvas(canvasRef: React.RefObject<HTMLCanvasElement>, webcamRef: 
     canvas.height = videoHeight;
   }
 }
-
 
 function formatDate(d: Date) {
   const formattedDate =
@@ -396,5 +392,5 @@ function base64toBlob(base64Data: any) {
     byteArray[i] = byteCharacters.charCodeAt(i);
   }
 
-  return new Blob([arrayBuffer], { type: "image/png" }); // Specify the image type here
+  return new Blob([arrayBuffer], { type: "image/png" });
 }
